@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng ký tài khoản</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #d4ede1, #cfe8f3, #b6dce4);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .fade-in {
+      animation: fadeIn 0.8s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card fade-in rounded-2xl shadow-xl p-8 w-full max-w-md text-gray-700">
+    <div class="text-center mb-6">
+      <img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Register" class="w-16 mx-auto mb-3">
+      <h2 class="text-3xl font-bold text-green-700">Đăng ký tài khoản</h2>
+      <p class="text-gray-600 text-sm">Tạo tài khoản để ứng tuyển và quản lý việc làm 💼</p>
+    </div>
+
+    <input id="username" type="text" placeholder="Tên đăng nhập" class="w-full px-4 py-3 mb-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400 outline-none">
+    <input id="password" type="password" placeholder="Mật khẩu" class="w-full px-4 py-3 mb-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400 outline-none">
+    <input id="confirm" type="password" placeholder="Xác nhận mật khẩu" class="w-full px-4 py-3 mb-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400 outline-none">
+
+    <button onclick="register()" class="w-full py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition">Đăng ký</button>
+
+    <p class="mt-4 text-center text-sm text-gray-600">
+      Đã có tài khoản?
+      <a href="user_login.html" class="text-green-700 hover:underline font-semibold">Đăng nhập ngay</a>
+    </p>
+
+    <div id="msg" class="text-center mt-3 text-sm text-red-500"></div>
+  </div>
+
+  <script>
+    async function register() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const confirm = document.getElementById('confirm').value.trim();
+
+      if (!username || !password || !confirm) {
+        document.getElementById('msg').innerText = "Vui lòng điền đầy đủ thông tin!";
+        return;
+      }
+
+      if (password !== confirm) {
+        document.getElementById('msg').innerText = "Mật khẩu xác nhận không khớp!";
+        return;
+      }
+
+      const res = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      document.getElementById('msg').innerText = data.message;
+
+      if (data.success) {
+        document.getElementById('msg').innerText = "✅ Đăng ký thành công! Chuyển hướng...";
+        setTimeout(() => window.location.href = 'user_login.html', 1000);
+      }
+    }
+  </script>
+</body>
+</html>

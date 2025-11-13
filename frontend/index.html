@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Tuyển Dụng Chuyên Nghiệp</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* 🌈 Tổng thể */
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f0f6ff, #eaf3ff);
+      color: #333;
+    }
+
+    /* 🔹 Header */
+    header {
+      background: linear-gradient(90deg, #1e3a8a, #2563eb);
+      color: white;
+      padding: 15px 30px;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    header h1 {
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: #00d4ff;
+    }
+
+    /* 🔸 Nút đăng nhập / đăng ký / đăng xuất */
+    .auth-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .auth-buttons button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      background: linear-gradient(90deg, #00b4d8, #48cae4);
+      color: white;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .auth-buttons button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(90deg, #48cae4, #00b4d8);
+    }
+
+    /* 🏞 Hero banner */
+    .hero {
+      background:
+        linear-gradient(rgba(30,58,138,0.6), rgba(30,58,138,0.6)),
+        url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1600&q=80')
+        center/cover no-repeat;
+      height: 380px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      margin-top: 70px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .hero h2 {
+      font-size: 34px;
+      font-weight: 600;
+      max-width: 700px;
+      line-height: 1.4;
+    }
+
+    /* 🔍 Ô tìm kiếm và lưới công việc */
+    main {
+      margin-top: 40px;
+      padding: 20px;
+      max-width: 1200px;
+      margin-inline: auto;
+    }
+
+    #searchBox {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 16px;
+      margin-bottom: 25px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      transition: all 0.3s;
+    }
+
+    #searchBox:focus {
+      border-color: #2563eb;
+      outline: none;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.15);
+    }
+
+    #job-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+    }
+
+    .job-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      padding: 20px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-align: center;
+      border: 1px solid transparent;
+    }
+
+    .job-card:hover {
+      transform: translateY(-6px);
+      border: 1px solid #2563eb;
+      box-shadow: 0 8px 20px rgba(37,99,235,0.2);
+    }
+
+    .job-card img {
+      width: 100%;
+      max-width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .job-card h3 {
+      font-size: 18px;
+      color: #1e3a8a;
+      font-weight: 600;
+    }
+
+    /* 🪟 Popup */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      animation: fadeIn 0.3s;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 14px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      animation: popIn 0.3s;
+      position: relative;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 26px;
+      cursor: pointer;
+      color: #555;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover { color: #000; }
+
+    /* ✅ Nút Ứng tuyển */
+    .modal-content button {
+      background: linear-gradient(90deg, #16a34a, #22c55e);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 22px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 10px rgba(22, 163, 74, 0.3);
+    }
+
+    .modal-content button:hover {
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(22, 163, 74, 0.4);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn { from { transform: scale(0.9); } to { transform: scale(1); } }
+
+    /* 📱 Responsive */
+    @media (max-width: 768px) {
+      .hero h2 { font-size: 24px; }
+      .job-card img { max-width: 120px; height: 120px; }
+      header { flex-direction: column; gap: 10px; text-align: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🌐 Web Tuyển Dụng</h1>
+    <nav>
+      <ul>
+        <li><a href="#" onclick="showPage('home')">Trang Chính</a></li>
+        <li><a href="#" onclick="showPage('myApplications')">Đã Ứng Tuyển</a></li>
+      </ul>
+    </nav>
+    <div class="auth-buttons">
+      <button id="loginBtn" onclick="window.location.href='user_login.html'">Đăng nhập</button>
+      <button id="registerBtn" onclick="window.location.href='user_register.html'">Đăng ký</button>
+      <button id="logoutBtn" style="display:none;" onclick="logout()">Đăng xuất</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h2>Tìm việc làm mơ ước của bạn tại đây</h2>
+  </section>
+
+  <main>
+    <!-- Trang chính -->
+    <section id="home" class="page active">
+      <input type="text" id="searchBox" placeholder="🔍 Tìm công ty..." oninput="filterJobs()" />
+      <p id="loading">Đang tải dữ liệu...</p>
+      <div id="job-list"></div>
+    </section>
+
+    <!-- Trang đã ứng tuyển -->
+    <section id="myApplications" class="page" style="display:none;">
+      <h2 style="text-align:center; margin-bottom: 20px;">💼 Công ty bạn đã ứng tuyển</h2>
+      <div id="applied-list" class="job-list"></div>
+      <p id="noApplications" style="text-align:center; display:none;">Bạn chưa ứng tuyển công ty nào.</p>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = "http://localhost:3000/api/jobs";
+    const CACHE_EXPIRE = 5 * 60 * 1000;
+    let jobs = [];
+    const safeValue = v => (!v || String(v).trim() === "" ? "Đang cập nhật" : v);
+
+    /* ==================== HIỂN THỊ / ẨN PAGE ==================== */
+    function showPage(id) {
+      document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+      document.getElementById(id).style.display = "block";
+      if (id === "myApplications") fetchUserApplications();
+    }
+
+    /* ==================== HIỂN THỊ DANH SÁCH JOB ==================== */
+    function renderJobs(list = jobs) {
+      const jobList = document.getElementById("job-list");
+      const loading = document.getElementById("loading");
+      jobList.innerHTML = "";
+      loading.style.display = "none";
+
+      list.forEach((job, i) => {
+        jobList.innerHTML += `
+          <div class="job-card" onclick="showJobDetail(${i})">
+            <img src="${safeValue(job.image || 'https://via.placeholder.com/120')}" alt="${safeValue(job.company)}" />
+            <h3>${safeValue(job.company)}</h3>
+          </div>`;
+      });
+    }
+
+    function filterJobs() {
+      const kw = document.getElementById("searchBox").value.toLowerCase();
+      renderJobs(jobs.filter(j => j.company.toLowerCase().includes(kw)));
+    }
+
+    /* ==================== MODAL CHI TIẾT JOB ==================== */
+    function showJobDetail(i) {
+      const j = jobs[i];
+      const modal = document.createElement("div");
+      modal.className = "modal-overlay";
+      modal.innerHTML = `
+        <div class="modal-content">
+          <span class="close-btn" onclick="this.closest('.modal-overlay').remove()">&times;</span>
+          <h2>${safeValue(j.company)}</h2>
+          <img src="${safeValue(j.image || 'https://via.placeholder.com/150')}" alt="${safeValue(j.company)}"
+               style="width:150px;height:150px;object-fit:cover;border-radius:10px;margin:10px 0;">
+          <p><b>Loại hình:</b> ${safeValue(j.type)}</p>
+          <p><b>Địa chỉ:</b> ${safeValue(j.address)}</p>
+          <p><b>Lương:</b> ${safeValue(j.salary)}</p>
+          <p><b>Độ tuổi:</b> ${safeValue(j.age)}</p>
+          <p><b>Chi tiết công việc:</b> ${safeValue(j.detail)}</p>
+          <button onclick="applyJob(${i})">Ứng tuyển ngay</button>
+        </div>`;
+      document.body.appendChild(modal);
+    }
+
+    /* ==================== FETCH JOBS ==================== */
+    async function fetchJobs() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        localStorage.setItem("cachedJobs", JSON.stringify({ timestamp: Date.now(), jobs: data }));
+        jobs = data;
+        renderJobs();
+      } catch (err) {
+        console.error("Lỗi fetch jobs:", err);
+      }
+    }
+
+    function initJobs() {
+      const cached = localStorage.getItem("cachedJobs");
+      if (cached) {
+        const { timestamp, jobs: cJobs } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_EXPIRE) {
+          jobs = cJobs;
+          renderJobs();
+        }
+      }
+      fetchJobs();
+    }
+
+    /* ==================== APPLY JOB ==================== */
+    async function applyJob(index) {
+  try {
+    const resAuth = await fetch("http://localhost:3000/api/check-auth", { credentials: "include" });
+    const authData = await resAuth.json();
+
+    if (!authData?.loggedIn) {
+      alert("Vui lòng đăng nhập trước khi ứng tuyển!");
+      window.location.href = "user_login.html";
+      return;
+    }
+
+    const job = jobs[index];
+    const user = authData.user;
+
+    // ✅ Lưu tạm vào localStorage để form.html dùng lại
+    localStorage.setItem("selectedJob", JSON.stringify(job));
+    localStorage.setItem("currentUser", JSON.stringify(user));
+
+    // ✅ Chuyển sang form.html để điền thông tin
+    window.location.href = "form.html";
+  } catch (err) {
+    console.error("❌ Lỗi khi ứng tuyển:", err);
+    alert("Đã có lỗi xảy ra, thử lại sau!");
+  }
+}
+
+    /* ==================== FETCH DANH SÁCH ỨNG TUYỂN ==================== */
+    async function fetchUserApplications() {
+      try {
+        const resAuth = await fetch("http://localhost:3000/api/check-auth", { credentials: "include" });
+        const authData = await resAuth.json();
+
+        if (!authData.loggedIn) {
+          alert("Bạn cần đăng nhập để xem danh sách ứng tuyển!");
+          window.location.href = "user_login.html";
+          return;
+        }
+
+        const res = await fetch(`http://localhost:3000/api/user/${authData.user.id}/applications`);
+        const data = await res.json();
+        const container = document.getElementById("applied-list");
+        const noApp = document.getElementById("noApplications");
+
+        container.innerHTML = "";
+        if (data.length === 0) {
+          noApp.style.display = "block";
+          return;
+        }
+
+        noApp.style.display = "none";
+        data.forEach(c => {
+          container.innerHTML += `
+            <div class="job-card">
+              <img src="${c.image || 'https://via.placeholder.com/150'}" alt="${c.company}" />
+              <h3>${c.company}</h3>
+              <p><b>Địa chỉ:</b> ${c.address || "Chưa cập nhật"}</p>
+              <p><b>Lương:</b> ${c.salary || "Thỏa thuận"}</p>
+              <p><i>Ứng tuyển lúc:</i> ${new Date(c.applied_at).toLocaleString()}</p>
+            </div>`;
+        });
+      } catch (err) {
+        console.error("❌ Lỗi khi tải danh sách ứng tuyển:", err);
+      }
+    }
+
+    /* ==================== AUTH + LOGOUT ==================== */
+    async function checkAuth() {
+      try {
+        const res = await fetch("http://localhost:3000/api/check-auth", { credentials: "include" });
+        const data = await res.json();
+
+        const loginBtn = document.getElementById("loginBtn");
+        const registerBtn = document.getElementById("registerBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        if (data.loggedIn) {
+          loginBtn.style.display = "none";
+          registerBtn.style.display = "none";
+          logoutBtn.style.display = "inline-block";
+          localStorage.setItem("user", JSON.stringify(data.user));
+        } else {
+          loginBtn.style.display = "inline-block";
+          registerBtn.style.display = "inline-block";
+          logoutBtn.style.display = "none";
+          localStorage.removeItem("user");
+        }
+      } catch (err) {
+        console.error("Lỗi kiểm tra session:", err);
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch("http://localhost:3000/api/logout", { method: "POST", credentials: "include" });
+        localStorage.removeItem("user");
+        alert("Bạn đã đăng xuất!");
+        checkAuth();
+        showPage("home");
+      } catch (err) {
+        console.error("Lỗi logout:", err);
+      }
+    }
+
+    /* ==================== KHỞI TẠO ==================== */
+    initJobs();
+    checkAuth();
+  </script>
+</body>
+</html>

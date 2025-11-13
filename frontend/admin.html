@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard - Quản Lý Công Ty</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f3f4f6; }
+    .modal { background: rgba(0,0,0,0.6); }
+    .modal-content {
+      animation: slideUp 0.3s ease forwards;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+  <!-- 🧭 Sidebar -->
+  <aside class="w-64 bg-gray-900 text-white flex flex-col">
+    <div class="text-center py-5 border-b border-gray-700">
+      <h1 class="text-2xl font-bold">🛠️ Admin Panel</h1>
+    </div>
+    <nav class="flex-1 p-4 space-y-2">
+      <button class="w-full text-left px-3 py-2 rounded bg-gray-800 hover:bg-gray-700" onclick="showSection('list')">📋 Danh sách</button>
+      <button class="w-full text-left px-3 py-2 rounded bg-gray-800 hover:bg-gray-700" onclick="openForm()">➕ Thêm công ty</button>
+    </nav>
+  </aside>
+
+  <!-- 📄 Main Content -->
+  <main class="flex-1 p-6 overflow-y-auto">
+    <div id="section-list">
+      <h2 class="text-3xl font-bold mb-4 text-gray-800">Danh sách công ty</h2>
+
+      <div class="flex justify-between items-center mb-3">
+        <input id="searchBox" type="text" placeholder="🔍 Tìm công ty..." class="border border-gray-300 rounded px-3 py-2 w-1/3" oninput="filterCompanies()">
+        <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onclick="openForm()">➕ Thêm công ty</button>
+      </div>
+
+      <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+        <table class="min-w-full text-sm text-gray-700" id="companyTable">
+          <thead class="bg-gray-100">
+  <tr>
+    <th class="px-4 py-2 text-left">STT</th>
+    <th class="px-4 py-2 text-left">Ảnh</th>
+    <th class="px-4 py-2 text-left">Công ty</th>
+    <th class="px-4 py-2 text-left">Loại hình</th>
+    <th class="px-4 py-2 text-left">Lương</th>
+    <th class="px-4 py-2 text-left">Địa chỉ</th>
+    <th class="px-4 py-2 text-center">Thao tác</th>
+  </tr>
+</thead>
+
+          <tbody id="companyList"></tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-center mt-4 space-x-2" id="pagination"></div>
+    </div>
+  </main>
+
+  <!-- 🪟 Modal Add/Edit -->
+  <div id="modal" class="fixed inset-0 hidden justify-center items-center modal">
+    <div class="modal-content bg-white p-6 rounded-lg w-full max-w-lg">
+      <h3 id="formTitle" class="text-xl font-bold mb-3 text-gray-700">Thêm công ty</h3>
+      <form id="companyForm" class="space-y-2">
+        <input type="hidden" id="companyId">
+        <input id="company" placeholder="Tên công ty" class="border w-full px-3 py-2 rounded" required>
+        <input id="image" placeholder="Link ảnh" class="border w-full px-3 py-2 rounded">
+        <input id="type" placeholder="Loại hình" class="border w-full px-3 py-2 rounded">
+        <input id="address" placeholder="Địa chỉ" class="border w-full px-3 py-2 rounded">
+        <input id="age" placeholder="Độ tuổi" class="border w-full px-3 py-2 rounded">
+        <input id="salary" placeholder="Lương" class="border w-full px-3 py-2 rounded">
+        <input id="bonus" placeholder="Thưởng" class="border w-full px-3 py-2 rounded">
+        <textarea id="detail" placeholder="Chi tiết công việc" class="border w-full px-3 py-2 rounded"></textarea>
+        <input id="interview" placeholder="Phỏng vấn" class="border w-full px-3 py-2 rounded">
+        <input id="document" placeholder="Hồ sơ" class="border w-full px-3 py-2 rounded">
+        <input id="note" placeholder="Lưu ý" class="border w-full px-3 py-2 rounded">
+        <input id="shift" placeholder="Ca làm việc" class="border w-full px-3 py-2 rounded">
+
+        <div class="flex justify-end space-x-2 mt-4">
+          <button type="button" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500" onclick="closeForm()">Hủy</button>
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  const API_URL = "http://localhost:3000/api/admin/companies";
+  let companies = [];
+  let filtered = [];
+  let currentPage = 1;
+  const perPage = 6;
+
+  async function loadCompanies() {
+    const res = await fetch(API_URL);
+    companies = await res.json();
+    filtered = companies;
+    renderTable();
+  }
+
+  function renderTable() {
+  const start = (currentPage - 1) * perPage;
+  const end = start + perPage;
+  const list = filtered.slice(start, end);
+
+  const tbody = document.getElementById("companyList");
+  tbody.innerHTML = list.map((c, index) => `
+    <tr class="border-b hover:bg-gray-50">
+      <td class="px-4 py-2">${start + index + 1}</td>
+      <td class="px-4 py-2">
+        ${c.image 
+          ? `<img src="${c.image}" alt="Ảnh công ty" class="w-12 h-12 object-cover rounded border">` 
+          : `<div class="w-12 h-12 bg-gray-200 flex items-center justify-center rounded text-gray-400 text-xs">No Img</div>`}
+      </td>
+      <td class="px-4 py-2 font-medium">${c.company}</td>
+      <td class="px-4 py-2">${c.type}</td>
+      <td class="px-4 py-2">${c.salary}</td>
+      <td class="px-4 py-2">${c.address}</td>
+      <td class="px-4 py-2 text-center">
+        <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2 hover:bg-yellow-600" onclick="editCompany(${c.id})">Sửa</button>
+        <button class="bg-red-600 text-white px-3 py-1 rounded mr-2 hover:bg-red-700" onclick="deleteCompany(${c.id})">Xóa</button>
+        <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" onclick="viewCompany(${c.id})">👁</button>
+      </td>
+    </tr>
+  `).join('');
+
+  renderPagination();
+}
+
+  
+
+
+  function filterCompanies() {
+    const keyword = document.getElementById("searchBox").value.toLowerCase();
+    filtered = companies.filter(c => c.company.toLowerCase().includes(keyword));
+    currentPage = 1;
+    renderTable();
+  }
+
+  function openForm() {
+    document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("companyForm").reset();
+    document.getElementById("companyId").value = "";
+    document.getElementById("formTitle").textContent = "Thêm công ty";
+  }
+
+  function closeForm() {
+    document.getElementById("modal").classList.add("hidden");
+  }
+
+  async function editCompany(id) {
+    const c = companies.find(x => x.id === id);
+    for (const key in c) {
+      if (document.getElementById(key)) document.getElementById(key).value = c[key];
+    }
+    document.getElementById("companyId").value = id;
+    document.getElementById("formTitle").textContent = "Chỉnh sửa công ty";
+    document.getElementById("modal").classList.remove("hidden");
+  }
+
+  async function deleteCompany(id) {
+    if (!confirm("Bạn có chắc muốn xóa công ty này?")) return;
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    loadCompanies();
+  }
+
+  // 👁️ Xem chi tiết công ty
+  function viewCompany(id) {
+    const c = companies.find(x => x.id === id);
+    if (!c) return;
+
+    const detailModal = document.createElement("div");
+    detailModal.className = "fixed inset-0 flex justify-center items-center modal";
+    detailModal.innerHTML = `
+      <div class="modal-content bg-white p-6 rounded-lg w-full max-w-2xl relative">
+        <h3 class="text-2xl font-bold mb-4 text-gray-800">👁️ Chi tiết công ty</h3>
+        <button class="absolute top-3 right-4 text-gray-600 hover:text-gray-800 text-2xl font-bold" onclick="this.closest('.modal').remove()">&times;</button>
+        <div class="space-y-2 text-gray-700">
+          <p><strong>ID:</strong> ${c.id}</p>
+          <p><strong>Tên công ty:</strong> ${c.company}</p>
+          <p><strong>Loại hình:</strong> ${c.type}</p>
+          <p><strong>Địa chỉ:</strong> ${c.address}</p>
+          <p><strong>Lương:</strong> ${c.salary}</p>
+          <p><strong>Độ tuổi:</strong> ${c.age || '-'}</p>
+          <p><strong>Thưởng:</strong> ${c.bonus || '-'}</p>
+          <p><strong>Chi tiết công việc:</strong> ${c.detail || '-'}</p>
+          <p><strong>Phỏng vấn:</strong> ${c.interview || '-'}</p>
+          <p><strong>Hồ sơ:</strong> ${c.document || '-'}</p>
+          <p><strong>Lưu ý:</strong> ${c.note || '-'}</p>
+          <p><strong>Ca làm việc:</strong> ${c.shift || '-'}</p>
+          ${c.image ? `<img src="${c.image}" alt="Ảnh công ty" class="mt-3 w-full max-h-64 object-contain border rounded-lg">` : ""}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(detailModal);
+  }
+
+  document.getElementById("companyForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const data = {};
+    ["company","image","type","address","age","salary","bonus","detail","interview","document","note","shift"].forEach(f => data[f] = document.getElementById(f).value);
+    const id = document.getElementById("companyId").value;
+    if (id) {
+      await fetch(`${API_URL}/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    } else {
+      await fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    }
+    closeForm();
+    loadCompanies();
+  });
+
+  function showSection(id) {
+    document.getElementById("section-list").style.display = id === "list" ? "block" : "none";
+  }
+
+  loadCompanies();
+</script>
+
+</body>
+</html>

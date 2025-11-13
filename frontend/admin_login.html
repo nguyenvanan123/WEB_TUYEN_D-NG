@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập - Công ty ABC</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .login-input:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 5px #6366f1;
+    }
+  </style>
+</head>
+<body>
+  <div class="glass rounded-2xl shadow-2xl p-8 w-full max-w-sm text-white">
+    <div class="text-center mb-6">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Logo" class="w-16 mx-auto mb-3">
+      <h2 class="text-3xl font-bold">Đăng nhập</h2>
+      <p class="text-sm text-gray-200">Chào mừng quay lại hệ thống quản lý!</p>
+    </div>
+
+    <div>
+      <input id="username" type="text" placeholder="Tên đăng nhập" 
+             class="login-input w-full px-4 py-3 mb-3 rounded-lg bg-white bg-opacity-20 border border-gray-300 text-white placeholder-gray-200">
+      <input id="password" type="password" placeholder="Mật khẩu" 
+             class="login-input w-full px-4 py-3 mb-4 rounded-lg bg-white bg-opacity-20 border border-gray-300 text-white placeholder-gray-200">
+      
+      <button onclick="login()" 
+              class="w-full py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 transition font-semibold shadow-md">
+        Đăng nhập
+      </button>
+
+      <p class="mt-4 text-center text-sm text-gray-200">
+        Chưa có tài khoản? 
+        <a href="#" onclick="register()" class="text-yellow-300 hover:underline font-semibold">Đăng ký ngay</a>
+      </p>
+
+      <div id="msg" class="text-center mt-3 text-sm text-yellow-200"></div>
+    </div>
+  </div>
+
+  <script>
+    async function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        document.getElementById('msg').innerText = "Vui lòng nhập đầy đủ thông tin!";
+        return;
+      }
+
+      const res = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      document.getElementById('msg').innerText = data.message;
+
+      if (data.success) {
+        document.getElementById('msg').innerText = "✅ Đăng nhập thành công!";
+        setTimeout(() => {
+          if (data.user.role === 'admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'index.html';
+          }
+        }, 1000);
+      }
+    }
+
+    async function register() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        document.getElementById('msg').innerText = "Vui lòng nhập tên và mật khẩu để đăng ký!";
+        return;
+      }
+
+      const res = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      document.getElementById('msg').innerText = data.message;
+    }
+  </script>
+</body>
+</html>

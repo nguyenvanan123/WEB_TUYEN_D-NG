@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập người dùng</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #e6f4ea, #d4ede1, #b8e0c6);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .fade-in {
+      animation: fadeIn 0.8s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card fade-in rounded-2xl shadow-xl p-8 w-full max-w-md text-gray-700">
+    <div class="text-center mb-6">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Logo" class="w-16 mx-auto mb-3">
+      <h2 class="text-3xl font-bold text-green-700">Đăng nhập</h2>
+      <p class="text-gray-600 text-sm">Chào mừng bạn trở lại với <b>JobConnect</b> 🌱</p>
+    </div>
+
+    <input id="username" type="text" placeholder="Tên đăng nhập"
+           class="w-full px-4 py-3 mb-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400 outline-none">
+    <input id="password" type="password" placeholder="Mật khẩu"
+           class="w-full px-4 py-3 mb-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-400 outline-none">
+
+    <button id="loginBtn"
+            class="w-full py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition">
+      Đăng nhập
+    </button>
+
+    <p class="mt-4 text-center text-sm text-gray-600">
+      Chưa có tài khoản?
+      <a href="user_register.html" class="text-green-700 hover:underline font-semibold">Đăng ký ngay</a>
+    </p>
+
+    <div id="msg" class="text-center mt-3 text-sm text-red-500"></div>
+  </div>
+
+  <script>
+    document.getElementById("loginBtn").addEventListener("click", login);
+
+    async function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const msg = document.getElementById('msg');
+
+      msg.innerText = "";
+
+      if (!username || !password) {
+        msg.innerText = "⚠️ Vui lòng nhập đầy đủ thông tin!";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:3000/api/user_login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+          credentials: "include" // ⚡ rất quan trọng để lưu cookie session
+        });
+
+        const data = await res.json();
+        msg.innerText = data.message || "Đăng nhập thất bại!";
+
+        if (data.success) {
+          msg.classList.remove("text-red-500");
+          msg.classList.add("text-green-600");
+          msg.innerText = "✅ Đăng nhập thành công!";
+          setTimeout(() => window.location.href = "index.html", 1000);
+        }
+      } catch (err) {
+        console.error("Lỗi khi đăng nhập:", err);
+        msg.innerText = "❌ Lỗi kết nối server.";
+      }
+    }
+
+    // 🚀 Nếu đã đăng nhập rồi, tự động chuyển về trang chính
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/check-auth", {
+          credentials: "include"
+        });
+        const data = await res.json();
+        if (data.loggedIn) window.location.href = "index.html";
+      } catch (err) {
+        console.warn("Không thể kiểm tra session:", err);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Form Ứng Tuyển</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+    header { background: #2c3e50; color: white; padding: 15px; text-align: center; position: relative; }
+    .back-btn { position: absolute; left: 15px; top: 15px; background: transparent; color: white; border: none; font-size: 20px; cursor: pointer; }
+    main { max-width: 600px; margin: 30px auto; background: white; padding: 25px 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; }
+    label { display: block; margin-top: 10px; font-weight: bold; color: #333; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; margin-top: 5px; }
+    .submit-btn { margin-top: 20px; width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.2s; }
+    .submit-btn:hover { background: #2ecc71; }
+    /* Popup */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; animation: fadeIn 0.3s ease forwards; }
+    .modal-content { background: #fff; padding: 25px 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: popIn 0.25s ease forwards; }
+    .modal-content h3 { margin-top: 0; color: #2c3e50; }
+    .modal-content button { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 15px; }
+    .modal-content button:hover { background: #2ecc71; }
+    @keyframes fadeIn { from {opacity:0;} to{opacity:1;} }
+    @keyframes popIn { from{transform:scale(0.9);} to{transform:scale(1);} }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="back-btn" onclick="goBack()">✖</button>
+    <h1>📋 Đơn Ứng Tuyển</h1>
+  </header>
+
+  <main>
+    <h2 id="companyName">Ứng tuyển vào công ty ...</h2>
+    <form id="applyForm">
+      <label>Họ và tên</label>
+      <input type="text" id="ho_ten" required />
+
+      <label>Giới tính</label>
+      <select id="gioi_tinh" required>
+        <option value="">-- Chọn giới tính --</option>
+        <option>Nam</option>
+        <option>Nữ</option>
+      </select>
+
+      <label>Hình thức làm việc</label>
+      <select id="hinh_thuc" required>
+        <option value="">-- Chọn hình thức --</option>
+        <option>Chính thức</option>
+        <option>Thời vụ</option>
+      </select>
+
+      <label>Ngày sinh</label>
+      <input type="date" id="ngay_sinh" />
+
+      <label>Số CCCD</label>
+      <input type="text" id="cccd" />
+
+      <label>Nơi cấp</label>
+      <input type="text" id="noi_cap" />
+
+      <label>Ngày cấp</label>
+      <input type="date" id="ngay_cap" />
+
+      <label>Số điện thoại</label>
+      <input type="text" id="so_dien_thoai" />
+
+      <label>Quê quán</label>
+      <input type="text" id="que_quan" />
+
+      <button type="submit" class="submit-btn">📨 Gửi đơn ứng tuyển</button>
+    </form>
+  </main>
+
+  <script>
+    const API_CHECK_LOGIN = "http://localhost:3000/api/check-auth";
+    const API_APPLY = "http://localhost:3000/api/apply";
+
+    let selectedJob = JSON.parse(localStorage.getItem("selectedJob"));
+
+    if (!selectedJob) {
+      alert("Vui lòng quay lại chọn công việc!");
+      window.location.href = "index.html";
+    }
+
+    document.getElementById("companyName").textContent = "Ứng tuyển vào: " + (selectedJob.company || "Không xác định");
+
+    async function checkLogin() {
+      try {
+        const res = await fetch(API_CHECK_LOGIN, { credentials: 'include' });
+        const data = await res.json();
+        if (!data.loggedIn) {
+          alert("⚠️ Bạn cần đăng nhập để ứng tuyển!");
+          window.location.href = "user_login.html";
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ Lỗi kết nối server!");
+        window.location.href = "user_login.html";
+      }
+    }
+    checkLogin();
+
+    function goBack() {
+      window.location.href = "index.html";
+    }
+document.getElementById("applyForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const data = {
+    job_id: selectedJob.id, // vẫn cần job_id
+    ho_ten: document.getElementById("ho_ten").value,
+    gioi_tinh: document.getElementById("gioi_tinh").value,
+    hinh_thuc: document.getElementById("hinh_thuc").value,
+    ngay_sinh: document.getElementById("ngay_sinh").value,
+    cccd: document.getElementById("cccd").value,
+    noi_cap: document.getElementById("noi_cap").value,
+    ngay_cap: document.getElementById("ngay_cap").value,
+    so_dien_thoai: document.getElementById("so_dien_thoai").value,
+    que_quan: document.getElementById("que_quan").value,
+    cong_ty: company,
+  };
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // quan trọng: gửi cookie session
+      body: JSON.stringify(data),
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      showSuccessPopup();
+      document.getElementById("applyForm").reset();
+      localStorage.removeItem("selectedJob");
+    } else {
+      alert("❌ " + (result.message || "Gửi thất bại"));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Lỗi kết nối server.");
+  }
+});
+
+    function showSuccessPopup() {
+      const modal = document.createElement("div");
+      modal.className = "modal-overlay";
+      modal.innerHTML = `
+        <div class="modal-content">
+          <h3>✅ Gửi đơn thành công!</h3>
+          <p>Cảm ơn bạn đã ứng tuyển. Chúng tôi sẽ liên hệ sớm nhất.</p>
+          <button onclick="closePopup()">OK</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function closePopup() {
+      document.querySelector(".modal-overlay")?.remove();
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
